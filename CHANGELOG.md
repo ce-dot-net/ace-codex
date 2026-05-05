@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.19
+
+- Cleaner `<ace-patterns>` injection on `UserPromptSubmit`. The previous renderer dumped up to 8 raw patterns including full code-block bodies (one observed turn shipped 2594 chars of context with a 636-char fenced subprocess example). New renderer:
+  - keeps top 10 patterns in ace-cli's existing relevance order (no local re-sort, the backend's ranking is authoritative)
+  - drops patterns whose body is mostly a fenced code block — those bloat the model's developer context and rarely help inline guidance
+  - collapses whitespace and trims each pattern's content to 120 chars with a trailing ellipsis
+  - caps total output at 1500 chars; remaining patterns are dropped silently rather than truncating mid-line
+- Net effect on the live JWT-authentication test: 14 raw patterns → 1364-char tag (47% of the previous payload) with the proven-helpful pattern still first
+- Added pytest coverage for the new behavior: code-block drop, total-length cap, ace-cli relevance order preservation, empty input
+
 ## 0.1.18
 
 - Phase 1 — ported 14 missing skills from the Claude ACE plugin to Codex-native `$ace-*` skills: `ace-search`, `ace-patterns`, `ace-top`, `ace-domains`, `ace-learn`, `ace-clear`, `ace-export-patterns`, `ace-import-patterns`, `ace-delta`, `ace-tune`, `ace-test`, `ace-install-cli`, `ace-cleanup`, `ace-insights`. Each is a `SKILL.md` under `plugins/ace-codex/skills/<name>/` with frontmatter that describes both **what** and **when** so Codex's implicit description-match invokes them correctly

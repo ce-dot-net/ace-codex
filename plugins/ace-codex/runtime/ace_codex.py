@@ -258,19 +258,64 @@ def search_warning_message(prompt: str) -> str:
     return f"ACE retrieval should run before state-changing work for: {prompt[:160]}"
 
 
+_CODE_BLOCK_RE = re.compile(r"```.*?```", re.DOTALL)
+_WHITESPACE_RE = re.compile(r"\s+")
+PATTERN_RENDER_TOP_K = 10
+PATTERN_RENDER_PER_LINE_CHARS = 120
+PATTERN_RENDER_MAX_TOTAL_CHARS = 1500
+
+
+def _is_mostly_code(content: str) -> bool:
+    stripped = content.lstrip()
+    return stripped.startswith("```") or content.count("```") >= 2
+
+
+def _trim_pattern_content(content: str, max_chars: int = PATTERN_RENDER_PER_LINE_CHARS) -> str:
+    cleaned = _CODE_BLOCK_RE.sub("[code omitted]", content)
+    cleaned = _WHITESPACE_RE.sub(" ", cleaned).strip()
+    if len(cleaned) <= max_chars:
+        return cleaned
+    return cleaned[: max_chars - 1].rstrip() + "…"
+
+
 def summarize_pattern(pattern: dict) -> str:
-    content = pattern.get("content", "").strip()
     domain = pattern.get("domain", "general")
     confidence = pattern.get("confidence", 0)
     helpful = pattern.get("helpful", 0)
+    content = _trim_pattern_content(pattern.get("content", ""))
     return f"[{domain}] {content} (conf={confidence:.2f}, helpful={helpful})"
 
 
-def render_patterns_context(patterns: list[dict], tag: str = "ace-patterns") -> str:
+def render_patterns_context(
+    patterns: list[dict],
+    tag: str = "ace-patterns",
+    top_k: int = PATTERN_RENDER_TOP_K,
+    max_total_chars: int = PATTERN_RENDER_MAX_TOTAL_CHARS,
+) -> str:
+    """
+    Render retrieved patterns as a compact `<ace-patterns>` block.
+
+    Trusts ace-cli's relevance ranking (no local re-sort) so the most
+    semantically relevant pattern stays first. Drops patterns whose body is
+    mostly a code block — those are too long for inline injection and rarely
+    useful as guidance. Each pattern's content is collapsed to a single line
+    and trimmed to `PATTERN_RENDER_PER_LINE_CHARS`. Total output is capped at
+    `max_total_chars` to avoid bloating the model's developer context.
+    """
     if not patterns:
         return ""
-    lines = "\n".join(f"- {summarize_pattern(p)}" for p in patterns[:8])
-    return f"<{tag}>\n{lines}\n</{tag}>"
+    pool = [p for p in patterns if not _is_mostly_code(p.get("content", ""))]
+    lines: list[str] = []
+    total = len(tag) * 2 + len("<></>") + 2
+    for pattern in pool[:top_k]:
+        line = f"- {summarize_pattern(pattern)}"
+        if total + len(line) + 1 > max_total_chars:
+            break
+        lines.append(line)
+        total += len(line) + 1
+    if not lines:
+        return ""
+    return f"<{tag}>\n" + "\n".join(lines) + f"\n</{tag}>"
 
 
 def now_iso() -> str:

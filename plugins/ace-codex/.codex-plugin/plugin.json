@@ -1,6 +1,6 @@
 {
   "name": "ace-codex",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "ACE for Codex: native marketplace plugin with setup, retrieval, learning, review, and status workflows backed by ace-cli.",
   "author": {
     "name": "CE Dot Net",

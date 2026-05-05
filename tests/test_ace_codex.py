@@ -14,11 +14,13 @@ from ace_codex import (  # noqa: E402
     latest_session_state_dir,
     parse_ace_review,
     permission_decision,
+    render_patterns_context,
     runtime_state_dir,
     session_key,
     session_state_dir,
     search_warning_message,
     should_skip_learning,
+    summarize_pattern,
     workspace_state_dir,
 )
 
@@ -121,3 +123,49 @@ def test_latest_session_state_dir_returns_most_recent(tmp_path: Path):
     os.utime(first, (1, 1))
     os.utime(second, (2, 2))
     assert latest_session_state_dir(tmp_path) == second
+
+
+def test_summarize_pattern_trims_long_content_and_collapses_whitespace():
+    long = "a " * 200  # 400 chars of "a "
+    out = summarize_pattern({"domain": "auth", "content": long, "confidence": 0.91, "helpful": 1})
+    assert out.startswith("[auth]")
+    assert "(conf=0.91, helpful=1)" in out
+    # the trimmed content portion must end in the ellipsis
+    assert "…" in out
+    # whole line must stay close to the per-line budget
+    assert len(out) < 200
+
+
+def test_render_patterns_context_drops_code_blocks_and_caps_total():
+    code_pattern = {
+        "domain": "subprocess",
+        "content": "```python\nprint('hi')\n```",
+        "confidence": 0.9,
+        "helpful": 5,
+    }
+    text_patterns = [
+        {"domain": "auth", "content": f"Use jwt.sign in handler {i}.", "confidence": 0.9, "helpful": 0}
+        for i in range(15)
+    ]
+    out = render_patterns_context([code_pattern, *text_patterns])
+    assert "```" not in out
+    assert "[code omitted]" not in out  # code-only patterns get dropped, not stub-rendered
+    assert out.startswith("<ace-patterns>")
+    assert out.endswith("</ace-patterns>")
+    assert out.count("\n- ") <= 10
+    assert len(out) <= 1500
+
+
+def test_render_patterns_context_returns_empty_for_no_patterns():
+    assert render_patterns_context([]) == ""
+
+
+def test_render_patterns_context_preserves_ace_cli_relevance_order():
+    patterns = [
+        {"domain": "first",  "content": "first hit",  "confidence": 0.7, "helpful": 0},
+        {"domain": "second", "content": "second hit", "confidence": 1.0, "helpful": 9},
+    ]
+    out = render_patterns_context(patterns)
+    # No local re-sort: ace-cli's order is preserved even though "second" has
+    # higher conf+helpful — the search engine already ranked them.
+    assert out.index("first hit") < out.index("second hit")
