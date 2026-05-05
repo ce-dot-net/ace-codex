@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.20
+
+- Docs-only fix for the release notes recipe in `RELEASING.md` and `.claude/agents/release-manager.md`. The previous `awk … | sed '$d'` form broke under shell escaping (the `$d` was interpreted as a shell variable inside double quotes, leaving `gh release create` with empty notes). New form uses `awk -v ver="## $VERSION" '$0 == ver …'` so the version interpolates safely and the awk body stays single-quoted. Both files now also include an empty-notes guard that bails before `gh release create` if extraction failed
+- Bumping the manifest in lockstep so end-user installs see the doc fix without manual `git pull`
+
 ## 0.1.19
 
 - Cleaner `<ace-patterns>` injection on `UserPromptSubmit`. The previous renderer dumped up to 8 raw patterns including full code-block bodies (one observed turn shipped 2594 chars of context with a 636-char fenced subprocess example). New renderer:

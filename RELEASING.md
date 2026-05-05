@@ -58,13 +58,21 @@ Do **not** amend the prior commit. Always create a new commit so `last_revision`
 ## Step 5 — Push and tag
 
 ```bash
+VERSION=<version>
 git push
-gh release create v<version> \
-  --title "v<version> — <one-line summary>" \
-  --notes "$(awk "/^## $VERSION$/,/^## /" CHANGELOG.md | sed '$d')"
+NOTES=$(awk -v ver="## $VERSION" '$0 == ver {flag=1; next} /^## /{flag=0} flag' CHANGELOG.md)
+gh release create "v$VERSION" \
+  --title "v$VERSION — <one-line summary>" \
+  --notes "$NOTES"
 ```
 
-Replace `$VERSION` with the new version. The `awk` pulls the matching CHANGELOG section as release notes.
+The `awk` invocation pulls the lines between the matching `## <version>` heading and the next `## ` heading. It uses `-v` to inject the version into the script (avoiding shell quoting around `$`) and a single-quoted `awk` body so `$0` and `$VERSION` substitution don't fight. Verify the captured notes are non-empty before running `gh release create`:
+
+```bash
+echo "$NOTES" | head
+```
+
+If `$NOTES` is empty, the heading didn't match — check that CHANGELOG.md has a `## <version>` line with no trailing whitespace.
 
 ## Step 6 — Verify the install path end to end
 

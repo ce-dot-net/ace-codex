@@ -2,7 +2,7 @@
 
 Independent Codex-native backlog for the `ace-codex` marketplace plugin.
 
-## Current status (0.1.19)
+## Current status (0.1.20)
 
 - Native marketplace/plugin structure: done
 - Codex-native invocation model: done
