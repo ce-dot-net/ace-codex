@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.21
+
+- Fixed `.gitignore` so `.claude/agents/release-manager.md` actually commits. The previous attempt used `!.claude/agents/` to re-include a subtree under `.claude/`, but git refuses to un-ignore a path whose parent directory is itself excluded. New `.gitignore` lists the specific personal paths (`.claude/data/`, `.claude/logs/`, `.claude/transcripts/`, `.claude/settings.local.json`, `.claude/projects/`, `.claude/cache/`) and leaves `.claude/agents/` trackable.
+- Added the project-local `release-manager` Claude Code agent file that shipped silently un-tracked in 0.1.18 due to the gitignore bug. The agent runs the `RELEASING.md` flow end-to-end and is now visible to every contributor cloning the repo.
+- Bumping the manifest in lockstep so end-user installs see the new state.
+
 ## 0.1.20
 
 - Docs-only fix for the release notes recipe in `RELEASING.md` and `.claude/agents/release-manager.md`. The previous `awk … | sed '$d'` form broke under shell escaping (the `$d` was interpreted as a shell variable inside double quotes, leaving `gh release create` with empty notes). New form uses `awk -v ver="## $VERSION" '$0 == ver …'` so the version interpolates safely and the awk body stays single-quoted. Both files now also include an empty-notes guard that bails before `gh release create` if extraction failed

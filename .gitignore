@@ -1,10 +1,14 @@
 .codex/
-.claude/
-# Project-local Claude Code agent definitions are shared via the repo so
-# every contributor gets the same release-manager etc. Personal Claude state
-# (logs, dbs, transcripts) stays ignored via the .claude/ rule above.
-!.claude/agents/
-!.claude/agents/**
+# .claude/ is a mixed dir: agents/ is committed (shared release-manager etc.),
+# personal state (data/, logs/, settings.local.json, transcripts) is not.
+# Re-including a path requires its parents to remain un-excluded, so list the
+# personal paths explicitly instead of excluding the whole dir.
+.claude/data/
+.claude/logs/
+.claude/transcripts/
+.claude/settings.local.json
+.claude/projects/
+.claude/cache/
 .pytest_cache/
 .github/.ace-version.json
 __pycache__/
