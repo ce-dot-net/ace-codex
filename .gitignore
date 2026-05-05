@@ -1,5 +1,10 @@
 .codex/
 .claude/
+# Project-local Claude Code agent definitions are shared via the repo so
+# every contributor gets the same release-manager etc. Personal Claude state
+# (logs, dbs, transcripts) stays ignored via the .claude/ rule above.
+!.claude/agents/
+!.claude/agents/**
 .pytest_cache/
 .github/.ace-version.json
 __pycache__/
