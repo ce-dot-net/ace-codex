@@ -1,0 +1,79 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ printf 'ACE hook fired: UserPromptSubmit at %s PLUGIN_ROOT=%s\\n' \"$(date -u +%FT%TZ)\" \"${PLUGIN_ROOT:-unset}\" >&2; }; SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" user_prompt_submit; echo '{}'",
+            "timeout": 30,
+            "statusMessage": "ACE retrieval"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Edit|Write|Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ printf 'ACE hook fired: PostToolUse tool=%s at %s\\n' \"${TOOL_NAME:-?}\" \"$(date -u +%FT%TZ)\" >&2; }; SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" post_tool_use; echo '{}'",
+            "timeout": 30,
+            "statusMessage": "ACE tool log"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ printf 'ACE hook fired: Stop at %s\\n' \"$(date -u +%FT%TZ)\" >&2; }; SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" stop; echo '{}'",
+            "timeout": 300,
+            "statusMessage": "ACE learn"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" permission_request; echo '{}'",
+            "timeout": 10,
+            "statusMessage": "ACE permission"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" pre_tool_use; echo '{}'",
+            "timeout": 15,
+            "statusMessage": "ACE retrieval gate"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ printf 'ACE hook fired: SessionStart source=%s at %s PLUGIN_ROOT=%s\\n' \"${HOOK_SOURCE:-?}\" \"$(date -u +%FT%TZ)\" \"${PLUGIN_ROOT:-unset}\" >&2; }; SCRIPT=\"${PLUGIN_ROOT:-}/runtime/hook_entry.py\"; if [ ! -f \"$SCRIPT\" ]; then for ALT in ./plugins/ace-codex/runtime/hook_entry.py \"${CODEX_HOME:-$HOME/.codex}\"/plugins/cache/*/ace-codex/*/runtime/hook_entry.py; do [ -f \"$ALT\" ] && SCRIPT=\"$ALT\" && break; done; fi; [ -f \"$SCRIPT\" ] && exec python3 \"$SCRIPT\" session_start; echo '{}'",
+            "timeout": 30,
+            "statusMessage": "ACE resume"
+          }
+        ]
+      }
+    ]
+  }
+}

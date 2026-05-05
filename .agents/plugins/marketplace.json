@@ -1,0 +1,20 @@
+{
+  "name": "ce-dot-net",
+  "interface": {
+    "displayName": "CE Dot Net"
+  },
+  "plugins": [
+    {
+      "name": "ace-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ace-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

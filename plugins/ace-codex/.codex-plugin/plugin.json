@@ -1,0 +1,44 @@
+{
+  "name": "ace-codex",
+  "version": "0.1.18",
+  "description": "ACE for Codex: native marketplace plugin with setup, retrieval, learning, review, and status workflows backed by ace-cli.",
+  "author": {
+    "name": "CE Dot Net",
+    "email": "ace@ce-dot-net.com",
+    "url": "https://github.com/ce-dot-net"
+  },
+  "homepage": "https://github.com/ce-dot-net/ace-codex",
+  "repository": "https://github.com/ce-dot-net/ace-codex",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "ace",
+    "context-engineering",
+    "learning",
+    "hooks"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "ACE Codex",
+    "shortDescription": "ACE workflows for Codex via @ace-codex and $ace-* skills",
+    "longDescription": "Codex-native ACE plugin for setup, retrieval, learning, domain-shift, and review workflows. Use @ace-codex for general routing, or invoke focused skills such as $ace-login, $ace-configure, $ace-bootstrap, $ace-status, $ace-review, and $ace-doctor.",
+    "developerName": "CE Dot Net",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/ce-dot-net/ace-codex",
+    "privacyPolicyURL": "https://github.com/ce-dot-net/ace-codex/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/ce-dot-net/ace-codex/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Ask @ace-codex to help me log in to ACE and configure this workspace for ace-cli.",
+      "Run $ace-bootstrap to build or refresh the ACE playbook from this codebase.",
+      "Run $ace-status or $ace-review to inspect ACE workspace health and the latest guidance."
+    ],
+    "brandColor": "#1F6FEB"
+  }
+}

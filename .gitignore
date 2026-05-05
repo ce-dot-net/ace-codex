@@ -1,0 +1,13 @@
+.codex/
+.claude/
+.pytest_cache/
+.github/.ace-version.json
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+.DS_Store
+node_modules/
+dist/
+coverage/
+*.log
