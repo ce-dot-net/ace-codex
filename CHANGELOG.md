@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.22
+
+- Rewrote the user-facing repo `README.md`. The previous version mixed dev-internal hygiene (release policy, validation, file inventory) with install instructions. New README leads with what ACE does for the user, names the **ACE account prerequisite at <https://ace-ai.app>**, gives the marketplace install command in its published form (`codex plugin marketplace add ce-dot-net/ace-codex`), enumerates the most useful skills, and ends with a 30-second troubleshooting cheat-sheet
+- Rewrote `plugins/ace-codex/docs/INSTALL.md` as the long-form companion to the README. Adds an explicit step 1 for ACE account creation, splits state-path documentation into a single table covering all six locations (repo `.codex`, `CODEX_HOME` fallback, plugin cache, etc.), and includes uninstall steps
+- Updated `tests/test_scripts_docs.py` accordingly: the strict path / `ACE_CLIENT_ID` / `CODEX_HOME` assertions moved from the README test to the INSTALL.md test where they belong. The README test now enforces user-facing essentials only (account link, marketplace install command, key skill names, doc pointers)
+- Bumping the manifest in lockstep so the doc fix flows through `codex plugin marketplace upgrade`
+
 ## 0.1.21
 
 - Fixed `.gitignore` so `.claude/agents/release-manager.md` actually commits. The previous attempt used `!.claude/agents/` to re-include a subtree under `.claude/`, but git refuses to un-ignore a path whose parent directory is itself excluded. New `.gitignore` lists the specific personal paths (`.claude/data/`, `.claude/logs/`, `.claude/transcripts/`, `.claude/settings.local.json`, `.claude/projects/`, `.claude/cache/`) and leaves `.claude/agents/` trackable.

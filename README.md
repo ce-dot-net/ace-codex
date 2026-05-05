@@ -1,115 +1,103 @@
-# ACE Codex Marketplace
+# ACE for Codex
 
-Public repo for the `ace-codex` Codex plugin and its repo-local marketplace source.
+ACE turns OpenAI Codex into an agent that **learns from every task**. It searches a per-project playbook before each prompt, injects the most relevant past patterns into the model's context, and feeds every completed turn back into the playbook so the next session is smarter.
 
-## Quickstart
+This repo packages ACE as a Codex-native marketplace plugin: 21 skills, native lifecycle hooks, an MCP server, and a Python runtime that talks to the real `ace-cli`.
 
-1. Clone the repo:
+## What you get
 
+- **`<ace-patterns>` injected on every prompt** — relevant snippets from your project's past work, ranked by the ACE backend, capped at 1500 chars
+- **Automatic learning at the end of every turn** — the trace ships to ACE; the server analyzes and updates the playbook
+- **Domain-shift detection** — when Codex starts touching a new file area mid-turn, ACE re-fetches scoped patterns
+- **21 `$ace-*` skills** for setup, search, manual learn, export/import, insights, diagnostics, and more
+
+## Prerequisites
+
+1. **An ACE account** — sign up at <https://ace-ai.app> and create an organization + a project. The plugin binds to one org/project per repo.
+2. **`ace-cli`** — the CLI that talks to the ACE backend. Install with:
    ```bash
-   git clone git@github.com:ce-dot-net/ace-codex.git
+   npm install -g @ace-sdk/cli
    ```
+   The `$ace-install-cli` skill runs the same command from inside Codex if you prefer.
+3. **Codex CLI** — version `0.128.0` or newer. Earlier versions miss the plugin-hooks feature gate.
 
-2. Add the repository as a Codex marketplace:
+## Install
 
-   ```bash
-   codex plugin marketplace add .
-   ```
+In Codex, register this repo as a plugin marketplace:
 
-3. Open Codex plugin management and install `ace-codex` from this marketplace.
-4. Install and authenticate `ace-cli` if it is not already present.
-5. Run `$ace-configure` once to bind the workspace with a real ACE org/project in `.codex/ace.json` and enable `[features].plugin_hooks = true` (the experimental flag that gates plugin-bundled hooks; `codex_hooks` alone is not enough).
-6. Use `@ace-codex` for general ACE help, or invoke a specific skill like `$ace-login`, `$ace-configure`, `$ace-bootstrap`, or `$ace-status`.
-7. If the repo-local `.codex` directory is not writable in your Codex session, ACE runtime state automatically falls back to `CODEX_HOME/ace-codex/<workspace-key>/`.
-8. Start a new thread after install or configure so Codex loads the current plugin and hook state.
+```bash
+codex plugin marketplace add ce-dot-net/ace-codex
+```
 
-ACE Codex is Codex-native. It does not use Claude-style slash commands.
+Then in Codex:
 
-## What the plugin provides
+1. Open `/plugins`, pick the **CE Dot Net** marketplace, install **ACE Codex**.
+2. Quit and relaunch Codex once. Plugin-bundled hooks load at session start, not mid-session.
+3. In your project, run `$ace-login` to authenticate `ace-cli` via device-code flow.
+4. Run `$ace-configure` to bind this repo to one of your ACE org/project pairs. The skill writes `.codex/ace.json` and adds `[features].plugin_hooks = true` to `~/.codex/config.toml` so plugin hooks actually fire.
+5. Quit and relaunch Codex one more time so the new feature flag engages.
+6. Optional: run `$ace-bootstrap` to seed the playbook from the codebase. Without bootstrapping, the playbook starts empty and grows as you work.
 
-- 21 Codex skills covering setup, retrieval, learning, playbook management, diagnostics, and reporting (full catalog in [`plugins/ace-codex/README.md`](plugins/ace-codex/README.md#how-to-use-it))
-- Six lifecycle hooks for prompt-time retrieval, tool accumulation, domain-shift re-search, review injection, and per-turn learning
-- A bundled MCP server (`ace-pattern-learning`) via `@ce-dot-net/ace-client`
-- Python runtime helpers that call the real `ace-cli`
-- Two invocation patterns: `@ace-codex` for routing and `$ace-*` for direct skill use
+Verify with `$ace-doctor`. Expect `verdict: ok`.
 
-## Repository layout
+## Use
 
-- `.agents/plugins/marketplace.json`: repo-local Codex marketplace catalog
-- `plugins/ace-codex/`: the Codex plugin bundle (skills, hooks, runtime, scripts, MCP)
-- `plugins/ace-codex/docs/ARCHITECTURE.md`: role mapping, lifecycle, state layout, transport rationale
-- `plugins/ace-codex/docs/SECURITY.md`: credentials, network surface, permission allowlist, trace schema
-- `plugins/ace-codex/docs/TROUBLESHOOTING.md`: verdict-by-verdict remediation
-- `plugins/ace-codex/docs/INSTALL.md`: install flow including the `plugin_hooks` feature flag
-- `plugins/ace-codex/docs/VERSIONING.md`: versioning policy
-- `plugins/ace-codex/docs/ace.example.json`: public example binding template
-- `CHANGELOG.md`: release notes
-- `PRIVACY.md`: plugin privacy policy
-- `TERMS.md`: plugin terms of use
-- `LICENSE`: repository license
-- `SUPPORT.md`: install and runtime support
+After install, just work normally. Every prompt triggers ACE retrieval; every turn end triggers ACE learning. You don't need to invoke any skill manually for the core loop.
 
-## Configuration
+When you do want a specific action, ask `@ace-codex` (lets the orchestrator pick the right flow) or invoke a skill directly:
 
-- Global ACE auth and identity live in `~/.config/ace/config.json`
-- Repo-local ACE workspace binding lives in `.codex/ace.json`
-- Session-scoped ACE runtime state lives in `.codex/.ace-codex/sessions/<session_id>/` when writable, otherwise `CODEX_HOME/ace-codex/<workspace-key>/sessions/<session_id>/`
-- Workspace-scoped domain state lives in `.codex/.ace-codex/workspace/` when writable, otherwise `CODEX_HOME/ace-codex/<workspace-key>/workspace/`
-- Codex plugin-hook enablement lives in `~/.codex/config.toml` under `[features]` with `plugin_hooks = true` (the canonical `hooks` flag is on by default for user-level hooks; plugin-bundled hooks need the separate `plugin_hooks` flag)
-- `ACE_CLIENT_ID` is optional and may be set by the launcher if needed
+| Skill | Purpose |
+|---|---|
+| `$ace-login` | Authenticate `ace-cli` via device-code |
+| `$ace-configure` | Bind this repo to an ACE org/project |
+| `$ace-bootstrap` | Seed the playbook from your codebase |
+| `$ace-status` | Auth, config, usage, and review health |
+| `$ace-doctor` | Full diagnosis with one-line verdict |
+| `$ace-search "query"` | Semantic search across the playbook |
+| `$ace-patterns` / `$ace-top` / `$ace-domains` | Browse the playbook |
+| `$ace-learn` | Manually capture a learning event |
+| `$ace-export-patterns` / `$ace-import-patterns` | Backup / restore the playbook |
+| `$ace-insights` | Per-turn relevance report (md / html / json) |
+| `$ace-cleanup` | Trim local session state |
 
-Example binding template:
+Full catalog: [`plugins/ace-codex/README.md`](plugins/ace-codex/README.md#how-to-use-it).
 
-- `plugins/ace-codex/docs/ace.example.json`
+## Where things live
 
-## Release policy
+- **Global ACE auth** — `~/.config/ace/config.json` (managed by `ace-cli login`)
+- **Per-repo binding** — `<repo>/.codex/ace.json` (org_id, project_id, verbosity)
+- **Per-session runtime state** — `<repo>/.codex/.ace-codex/sessions/<session_id>/` (or `${CODEX_HOME}/ace-codex/<workspace-key>/sessions/<session_id>/` if the repo path is read-only)
+- **Codex plugin cache** — `~/.codex/plugins/cache/ce-dot-net/ace-codex/<version>/` (managed by Codex)
 
-The plugin version is defined in `plugins/ace-codex/.codex-plugin/plugin.json` and follows semver.
+## Updating
 
-- bump `patch` for docs or release hygiene
-- bump `minor` for backwards-compatible workflow additions
-- bump `major` for breaking manifest or hook changes
+```bash
+codex plugin marketplace upgrade ce-dot-net
+```
 
-See [`plugins/ace-codex/docs/VERSIONING.md`](plugins/ace-codex/docs/VERSIONING.md) and [`CHANGELOG.md`](CHANGELOG.md).
+Then quit and relaunch Codex. Codex caches plugins by version; without an upgrade, the old cache stays active even after we ship a new release.
 
-## Updates
+## Troubleshooting in 30 seconds
 
-- Bump the plugin version for every release so Codex can resolve a new cached bundle.
-- End users update through Codex plugin management.
-- If Codex does not show an explicit update action for `ace-codex`, reinstall the plugin from the marketplace entry.
-- After reinstalling or toggling the plugin, start a new thread. Restart Codex if the current session does not pick up the change.
+Run `$ace-doctor`. It prints a one-line `verdict:` that names the most likely failure:
 
-### Why hooks may appear silent
+- `SET [features].plugin_hooks = true` → run `$ace-configure`, then restart Codex
+- `cached plugin version != repo manifest` → run `codex plugin marketplace upgrade ce-dot-net`, restart
+- `plugin not registered` → run `codex plugin marketplace add ce-dot-net/ace-codex` and install in `/plugins`
+- `hooks never fired` → fully quit Codex (not resume) and start a fresh thread
+- `ok` → you're good
 
-The most common cause is that Codex has two separate hook feature flags and only one of them is on by default:
+For deeper issues see [`plugins/ace-codex/docs/TROUBLESHOOTING.md`](plugins/ace-codex/docs/TROUBLESHOOTING.md).
 
-| Flag | Stage | Default | Loads |
-|---|---|---|---|
-| `[features].hooks` (alias `codex_hooks`) | Stable | **ON** | `~/.codex/hooks.json` and `<repo>/.codex/hooks.json` |
-| `[features].plugin_hooks` | UnderDevelopment | **OFF** | Plugin-bundled `hooks/hooks.json` (which is what ACE Codex uses) |
+## More
 
-If `$ace-doctor` reports that hooks have never fired, walk through these in order:
+- [`plugins/ace-codex/docs/INSTALL.md`](plugins/ace-codex/docs/INSTALL.md) — extended install + configuration walkthrough
+- [`plugins/ace-codex/docs/ARCHITECTURE.md`](plugins/ace-codex/docs/ARCHITECTURE.md) — how the plugin maps onto Codex hooks; what ships in each session
+- [`plugins/ace-codex/docs/SECURITY.md`](plugins/ace-codex/docs/SECURITY.md) — credentials, network surface, exact trace payload sent to ACE
+- [`SUPPORT.md`](SUPPORT.md) — channels for help
+- [`PRIVACY.md`](PRIVACY.md) / [`TERMS.md`](TERMS.md) — plugin policies
+- [`CHANGELOG.md`](CHANGELOG.md) — release notes
 
-1. `[features].plugin_hooks = true` must be present in `~/.codex/config.toml`. Run `$ace-configure` to set it, then **restart Codex** so the experimental flag actually engages. Setting only `codex_hooks = true` is **not enough** — that alias toggles the user-level loader, not the plugin loader.
-2. `[plugins."ace-codex@<marketplace>"] enabled = true` must be present. Open the Codex plugin directory and confirm `ace-codex` is enabled.
-3. The cached version under `~/.codex/plugins/cache/<marketplace>/ace-codex/<version>/` must match the repo manifest version. If they drift, run:
+## License
 
-   ```bash
-   codex plugin marketplace upgrade <marketplace>
-   ```
-
-   then start a new thread.
-4. The current project must be **trusted** for repo-local config layers to load. Codex prompts on first session; you can also confirm via `[projects."<repo path>"] trust_level = "trusted"` in `~/.codex/config.toml`. Plugin-bundled hooks themselves do not require project trust, but `<repo>/.codex/ace.json` binding does.
-5. After any of the above changes, **start a new thread**. Codex loads plugins and hook config at session start, not mid-session.
-
-Run `$ace-doctor` to print a one-line `verdict:` that names the likely cause.
-
-## Validation
-
-- Unit and script-mock coverage runs in `pytest`.
-- Hook entrypoints are exercised through CLI-style JSON payload tests that simulate native Codex hook events.
-- Marketplace registration is verified in an isolated `HOME` by running `codex plugin marketplace add .` and asserting the resulting `~/.codex/config.toml`.
-
-## Support
-
-See [`SUPPORT.md`](SUPPORT.md) for install and runtime troubleshooting.
+[MIT](LICENSE).
